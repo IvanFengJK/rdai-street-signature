@@ -1,0 +1,21 @@
+city_ascii,country,continent,images,sequences,kartaview,kv_pct,pano,gvi,bvi
+Berlin,Germany,Europe,277745,2076,82849,29.8,6503,0.082,0.222
+Sao Paulo,Brazil,South America,271892,2247,77890,28.6,0,0.164,0.209
+Washington,United States,North America,203378,2908,10023,4.9,54936,0.091,0.226
+Taipei,Taiwan,Asia,194522,1043,12,0.0,2430,0.127,0.266
+Moscow,Russia,Europe,192633,3143,5146,2.7,2126,0.035,0.281
+Lima,Peru,South America,116396,292,0,0.0,94889,0.029,0.199
+Jakarta,Indonesia,Asia,115392,1003,85303,73.9,821,0.272,0.116
+Athens,Greece,Europe,104294,599,114,0.1,71120,0.072,0.278
+Melbourne,Australia,Oceania,90149,933,12591,14.0,0,0.188,0.25
+Lisbon,Portugal,Europe,85895,573,4,0.0,1420,0.056,0.31
+Ottawa,Canada,North America,68099,749,20943,30.8,1056,0.142,0.185
+San Jose,Costa Rica,North America,67304,950,23459,34.9,2555,0.101,0.215
+San Francisco,United States,North America,66785,320,5138,7.7,2052,0.207,0.2
+Tokyo,Japan,Asia,63812,839,2882,4.5,6960,0.073,0.296
+Kuwait City,Kuwait,Asia,62640,733,0,0.0,152,0.075,0.191
+Maseru,Lesotho,Africa,33225,446,6000,18.1,0,0.208,0.055
+Kampala,Uganda,Africa,30677,646,425,1.4,1303,0.19,0.16
+Dar es Salaam,Tanzania,Africa,29762,219,0,0.0,116,0.223,0.207
+Singapore,Singapore,Asia,22327,204,9977,44.7,0,0.439,0.069
+Casablanca,Morocco,Africa,18672,9641,487,2.6,9530,0.05,0.338

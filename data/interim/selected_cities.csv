@@ -1,0 +1,21 @@
+city,city_ascii,city_id,city_lat,city_lon,country,iso2,iso3,admin_name,capital,population,continent,img_count,koppen_geiger_zone,zone_description,timezone
+Singapore,Singapore,1702341327,1.3,103.8,Singapore,SG,SGP,Central Singapore,primary,5271000.0,Asia,22579,Af,Tropical rainforest,Asia/Singapore
+Taipei,Taipei,1158881289,25.0478,121.5319,Taiwan,TW,TWN,Taipei,,2684567.0,Asia,198550,Cfa,"Humid subtropical, no dry season",Asia/Taipei
+Jakarta,Jakarta,1360771077,-6.2146,106.8451,Indonesia,ID,IDN,Jakarta,primary,35362000.0,Asia,115913,Af,Tropical rainforest,Asia/Jakarta
+Tokyo,Tokyo,1392685764,35.6839,139.7744,Japan,JP,JPN,Tōkyō,primary,39105000.0,Asia,65008,Cfa,"Humid subtropical, no dry season",Asia/Tokyo
+Kuwait City,Kuwait City,1414102075,29.375,47.98,Kuwait,KW,KWT,Al ‘Āşimah,primary,2989000.0,Asia,63761,BWh,Subtropical desert,Asia/Kuwait
+Berlin,Berlin,1276451290,52.5167,13.3833,Germany,DE,DEU,Berlin,primary,3664088.0,Europe,281033,Cfb,"Marine west coast, warm summer",Europe/Berlin
+Moscow,Moscow,1643318494,55.7558,37.6178,Russia,RU,RUS,Moskva,primary,17693000.0,Europe,198350,Dfb,"Humid continental, no dry season, warm summer",Europe/Moscow
+Athens,Athens,1300715560,37.9842,23.7281,Greece,GR,GRC,Attikí,primary,664046.0,Europe,106003,Csa,"Mediterranean, hot summer",Europe/Athens
+Lisbon,Lisbon,1620619017,38.708,-9.139,Portugal,PT,PRT,Lisboa,primary,506654.0,Europe,87461,Csa,"Mediterranean, hot summer",Europe/Lisbon
+Washington,Washington,1840006060,38.9047,-77.0163,United States,US,USA,District of Columbia,primary,5379184.0,North America,207103,Cfa,"Humid subtropical, no dry season",America/New_York
+San Francisco,San Francisco,1840021543,37.7562,-122.443,United States,US,USA,California,,3592294.0,North America,68040,Csb,"Mediterranean, warm summer",America/Los_Angeles
+Ottawa,Ottawa,1124399363,45.4247,-75.695,Canada,CA,CAN,Ontario,primary,989567.0,North America,69074,Dfb,"Humid continental, no dry season, warm summer",America/Toronto
+San José,San Jose,1188749877,9.9333,-84.0833,Costa Rica,CR,CRI,San José,primary,288054.0,North America,68163,Am,Tropical monsoon,America/Costa_Rica
+São Paulo,Sao Paulo,1076532519,-23.5504,-46.6339,Brazil,BR,BRA,São Paulo,admin,22495000.0,South America,275854,Cfa,"Humid subtropical, no dry season",America/Sao_Paulo
+Lima,Lima,1604728603,-12.06,-77.0375,Peru,PE,PER,Lima,primary,8992000.0,South America,118839,BWh,Subtropical desert,America/Lima
+Kampala,Kampala,1800406299,0.3136,32.5811,Uganda,UG,UGA,Kampala,primary,1659600.0,Africa,31259,Af,Tropical rainforest,Africa/Kampala
+Casablanca,Casablanca,1504175315,33.5992,-7.62,Morocco,MA,MAR,Casablanca-Settat,admin,4370000.0,Africa,19057,Csa,"Mediterranean, hot summer",Africa/Casablanca
+Dar es Salaam,Dar es Salaam,1834843853,-6.8,39.2833,Tanzania,TZ,TZA,Dar es Salaam,primary,7461000.0,Africa,30406,Aw,Tropical wet and dry or savanna,Africa/Dar_es_Salaam
+Maseru,Maseru,1426977668,-29.31,27.48,Lesotho,LS,LSO,Maseru,primary,330790.0,Africa,33803,Cwb,Temperate highland tropical climate with dry winters,Africa/Maseru
+Melbourne,Melbourne,1036533631,-37.8136,144.9631,Australia,AU,AUS,Victoria,admin,4529500.0,Oceania,91660,Cfb,"Marine west coast, warm summer",Australia/Melbourne

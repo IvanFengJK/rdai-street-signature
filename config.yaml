@@ -27,9 +27,32 @@ data:
 
 # ---- Stage 1: subset -------------------------------------------------------
 subset:
-  cities: []                     # filled in Stage 1, not before
+  # 20 cities, all six continents, chosen for distinct Koppen climate zones
+  # so the encoder sees genuinely different streetscapes. Matched on city_id
+  # (SimpleMaps 10-digit id) because city name strings are not unique globally.
+  cities:
+    - {city_id: 1702341327, name: "Singapore", country: "Singapore", continent: "Asia", koppen: "Af", img_count_full: 22579}
+    - {city_id: 1158881289, name: "Taipei", country: "Taiwan", continent: "Asia", koppen: "Cfa", img_count_full: 198550}
+    - {city_id: 1360771077, name: "Jakarta", country: "Indonesia", continent: "Asia", koppen: "Af", img_count_full: 115913}
+    - {city_id: 1392685764, name: "Tokyo", country: "Japan", continent: "Asia", koppen: "Cfa", img_count_full: 65008}
+    - {city_id: 1414102075, name: "Kuwait City", country: "Kuwait", continent: "Asia", koppen: "BWh", img_count_full: 63761}
+    - {city_id: 1276451290, name: "Berlin", country: "Germany", continent: "Europe", koppen: "Cfb", img_count_full: 281033}
+    - {city_id: 1643318494, name: "Moscow", country: "Russia", continent: "Europe", koppen: "Dfb", img_count_full: 198350}
+    - {city_id: 1300715560, name: "Athens", country: "Greece", continent: "Europe", koppen: "Csa", img_count_full: 106003}
+    - {city_id: 1620619017, name: "Lisbon", country: "Portugal", continent: "Europe", koppen: "Csa", img_count_full: 87461}
+    - {city_id: 1840006060, name: "Washington", country: "United States", continent: "North America", koppen: "Cfa", img_count_full: 207103}
+    - {city_id: 1840021543, name: "San Francisco", country: "United States", continent: "North America", koppen: "Csb", img_count_full: 68040}
+    - {city_id: 1124399363, name: "Ottawa", country: "Canada", continent: "North America", koppen: "Dfb", img_count_full: 69074}
+    - {city_id: 1188749877, name: "San Jose", country: "Costa Rica", continent: "North America", koppen: "Am", img_count_full: 68163}
+    - {city_id: 1076532519, name: "Sao Paulo", country: "Brazil", continent: "South America", koppen: "Cfa", img_count_full: 275854}
+    - {city_id: 1604728603, name: "Lima", country: "Peru", continent: "South America", koppen: "BWh", img_count_full: 118839}
+    - {city_id: 1800406299, name: "Kampala", country: "Uganda", continent: "Africa", koppen: "Af", img_count_full: 31259}
+    - {city_id: 1504175315, name: "Casablanca", country: "Morocco", continent: "Africa", koppen: "Csa", img_count_full: 19057}
+    - {city_id: 1834843853, name: "Dar es Salaam", country: "Tanzania", continent: "Africa", koppen: "Aw", img_count_full: 30406}
+    - {city_id: 1426977668, name: "Maseru", country: "Lesotho", continent: "Africa", koppen: "Cwb", img_count_full: 33803}
+    - {city_id: 1036533631, name: "Melbourne", country: "Australia", continent: "Oceania", koppen: "Cfb", img_count_full: 91660}
   min_images_per_city: 2000      # acceptance criterion
-  max_snap_dist_m: null          # OSM snap sanity threshold, decided in Stage 1
+  max_snap_dist_m: 20.0          # drop rows snapped >20 m from an OSM edge
 
 # ---- Stage 2: imagery ------------------------------------------------------
 imagery:
