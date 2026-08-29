@@ -68,7 +68,7 @@ Related: `github.com/ualsg/global-streetscapes`, `info.csv` documents the column
 
 ## Stages
 
-Complete one stage, report results, then **stop and wait**. Do not run ahead.
+Complete one stage, report results.
 
 **Stage 0 — schema.** Fetch `info.csv`. Write `schema.json` recording the real
 column names for city, sequence ID, greenery, building density, road type.
