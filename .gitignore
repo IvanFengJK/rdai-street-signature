@@ -1,0 +1,29 @@
+# ---- data ----
+# Tabular dumps and imagery are large and re-downloadable; never commit them.
+data/*
+!data/raw/
+data/raw/*
+!data/raw/info.csv          # 37 KB data dictionary, kept for provenance
+
+# ---- artefacts ----
+checkpoints/
+outputs/
+embeddings/
+*.pt
+*.pth
+*.npy
+*.npz
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# ---- notebooks ----
+.ipynb_checkpoints/
+
+# ---- misc ----
+.DS_Store
+.vscode/

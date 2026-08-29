@@ -1,0 +1,41 @@
+# Parallel Streets — pinned to what Google Colab currently ships.
+#
+# EVIDENCE (checked 2026-08-30, since I cannot execute a Colab runtime myself):
+#   torch / torchvision — googlecolab/colabtools#5801 announced torch 2.10.0 +
+#     torchvision 0.25.0; a Colab maintainer confirmed in-runtime on 2026-03-23
+#     ("import torch; print(torch.__version__)" -> 2.10.0) and the issue was
+#     closed 2026-03-24. The later upgrade requests (#5925 torch 2.11, #5982
+#     torch 2.12.1, #6053 torch 2.13) are all still OPEN, i.e. announced by the
+#     PyTorch team but not yet adopted by Colab. So 2.10.0 is the current ship.
+#   Colab Python is 3.12; Colab CUDA was 12.5 as of colabtools#5801.
+#
+# VERIFY THIS before Stage 10 with a one-liner in a fresh Colab runtime:
+#   import torch, torchvision; print(torch.__version__, torchvision.__version__)
+torch==2.10.0
+torchvision==0.25.0
+
+# timm is NOT preinstalled on Colab, so there is no Colab version to match.
+# 1.0.26 (2026-03-23) is the timm release contemporaneous with the verified
+# Colab torch 2.10.0 snapshot above. Latest is 1.0.29 (2026-08-28).
+timm==1.0.26
+
+# ---------------------------------------------------------------------------
+# Everything below is deliberately NOT hard-pinned.
+# These are all preinstalled on Colab, but I could not verify their exact
+# shipped versions: the public Colab runtime image mirror
+# (us-docker.pkg.dev/colab-images/public/runtime) has not been updated since
+# 2025-09, and the release notes require sign-in. Pinning them from guesswork
+# would fight Colab's own resolver and risk a pip-driven torch downgrade.
+# Floors only; exact versions get recorded on the first real Colab run.
+# ---------------------------------------------------------------------------
+numpy>=1.26
+pandas>=2.2
+pyarrow>=14.0          # parquet mirrors of the tabular data
+pyyaml>=6.0            # config.yaml
+huggingface_hub>=0.34  # tabular download (Stage 0/1)
+pillow>=10.0
+tqdm>=4.66
+matplotlib>=3.8        # static maps and image cards only — no web UI (rule 6)
+scikit-learn>=1.4      # NearestNeighbors baseline (rule 3) + confusion matrix
+umap-learn>=0.5        # Stage 8
+grad-cam>=1.5          # Stage 9

@@ -1,0 +1,83 @@
+# Parallel Streets — single source of truth for all stages.
+# src/ modules read this; the Stage 10 notebook only overrides a few keys.
+
+project:
+  name: parallel-streets
+  seed: 1337                     # rule: Stage 5 must reproduce from this seed
+
+paths:
+  schema:      schema.json
+  raw:         data/raw          # info.csv and the downloaded tabular dumps
+  interim:     data/interim      # filtered/joined tables
+  images:      data/images       # resized imagery, one subdir per city
+  checkpoints: checkpoints
+  outputs:     outputs
+
+data:
+  hf_repo: NUS-UAL/global-streetscapes
+  hf_repo_type: dataset
+  prefer_parquet: true           # data/parquet/*.parquet loads far faster than csv
+  # Only the tables Stage 1 actually needs to join.
+  tables:
+    - simplemaps
+    - metadata_common_attributes
+    - segmentation
+    - osm
+    - ghsl
+
+# ---- Stage 1: subset -------------------------------------------------------
+subset:
+  cities: []                     # filled in Stage 1, not before
+  min_images_per_city: 2000      # acceptance criterion
+  max_snap_dist_m: null          # OSM snap sanity threshold, decided in Stage 1
+
+# ---- Stage 2: imagery ------------------------------------------------------
+imagery:
+  images_per_city: 5000
+  resize_px: 256                 # pre-resized on disk
+  skip_existing: true            # idempotent
+
+# ---- Stage 3: dataloader ---------------------------------------------------
+dataloader:
+  split_key: sequence_id         # rule 1 — NEVER random
+  val_fraction: 0.2
+  image_size: 224                # batches are (B, 3, 224, 224)
+  batch_size: 64
+  num_workers: 8
+
+# ---- Stage 4: encoder ------------------------------------------------------
+encoder:
+  backbone: resnet50             # switch to a small ViT to compare later
+  # backbone: vit_small_patch16_224
+  pretrained: false              # the point of the project is that WE train it
+  pretext_task: city_classification
+
+# ---- Stage 5: train --------------------------------------------------------
+train:
+  epochs: 20
+  lr: 0.0003
+  weight_decay: 0.05
+  amp: true                      # mixed precision
+  checkpoint_every_epoch: true
+
+# ---- Stage 7: retrieval + evaluation ---------------------------------------
+retrieval:
+  top_k: 10
+  n_queries: 20
+  cross_city_only: true          # neighbours must be in OTHER cities
+  systems:                       # all three answer the same query set
+    - trained_embedding          # ours
+    - tabular_features           # normalised, sklearn NearestNeighbors baseline
+    - frozen_imagenet            # no training
+  attributes:                    # physical attributes only — never perception
+    - green_view_index
+    - building_view_index        # derived: Building / Total, see schema.json
+    - type_highway
+
+# ---- Stage 10: notebook ----------------------------------------------------
+notebook:
+  train_from_scratch: false      # default False: load published checkpoint
+  colab_reduced:                 # the True path must genuinely run on a T4
+    epochs: 3
+    batch_size: 32
+    images_per_city: 500
