@@ -252,3 +252,169 @@ interrupted and resumed several times during those 10 hours.
 
 **Balanced manifest: `data/interim/dataset.parquet`** — 100,000 rows, exactly
 5,000 per city, zero panoramas, every row backed by a file on disk.
+
+---
+
+## Stage 3 — dataloader ✅ (acceptance met)
+
+| check | result |
+|---|---|
+| batch shape | `(64, 3, 224, 224)` ✅ |
+| train/val sequence-ID intersection | **0** ✅ |
+| per-city counts | printed, ~20% val in every city (19.98–22.3%) |
+
+79,707 train / 20,293 val, no rows lost, deterministic across calls.
+
+**Bug found and fixed.** `rng.shuffle()` was being applied to a pandas
+`ArrowStringArray`, which numpy warns it cannot shuffle safely — it can
+*duplicate* entries. A duplicated sequence id there would have silently
+corrupted the split, i.e. quietly violated rule 1 while the assert still
+passed. Now converted to a numpy object array first.
+
+Split is stratified per city, which matters here: sequence density varies about
+40x between cities (Moscow ~2 images/sequence in the sample, Casablanca ~86), so
+a global sequence split would have handed whole cities to one side.
+
+## Stage 4 — encoder ✅
+
+```
+backbone=resnet50   embed_dim=2048
+total params    : 23,549,012
+trainable params: 23,549,012
+head            : Linear(in_features=2048, out_features=20, bias=True)
+```
+
+`pretrained=False` — weights start random. The ViT switch is verified working:
+`vit_small_patch16_224` gives 21,673,364 params and a 384-d embedding.
+
+## Stage 5 — training ✅ (both acceptance criteria met)
+
+**Best validation accuracy 0.9089 against 0.0500 chance — 18.2x.** 20 epochs,
+mixed precision, ~75 min on the RTX 3080 Ti, checkpoint every epoch.
+
+**Reproducibility: bit-identical.** Two independent runs from the same seed
+agree on train_loss, val_loss and val_acc for all 20 epochs, on the confusion
+matrix, and on *every weight tensor* (max absolute difference 0.0).
+
+That did not work at first, and the two reasons were real bugs, not flakiness:
+
+1. **`build_model()` ran before `set_seed()`.** 23.5M weights were initialised
+   from an unseeded RNG, so two runs from the "same seed" started from
+   different weights and could never have matched.
+2. **DataLoader workers drew augmentation from an unseeded numpy RNG.** Workers
+   are forked processes; without an explicit `worker_init_fn` they produce a
+   different augmentation stream every run.
+
+Both are fixed in `src/dataset.py` and `scripts/run_stage5.py`. Worth noting
+that the acceptance criterion is what surfaced them — without it the model
+would have looked fine and been quietly irreproducible.
+
+Confusion matrix is a clean diagonal; Moscow, Kuwait City, Washington and
+Jakarta are near-perfect, Lima is weakest (~0.70) with its errors going to San
+Jose and San Francisco.
+
+## Stage 6 — embeddings ✅
+
+Head stripped, 2048-d backbone output cached for all 100,000 images (1.3 min),
+plus a frozen-ImageNet set for the Stage 7 comparison (1.4 min).
+
+## Stage 7 — retrieval + evaluation ⚠️ NEGATIVE RESULT
+
+Top-10 cross-city neighbours, 20 queries, mean absolute difference in physical
+attributes. **Lower is better.**
+
+| system | greenery | building density | road-type mismatch |
+|---|---:|---:|---:|
+| trained (ours) | 0.1456 | 0.2266 | 0.3191 |
+| tabular (baseline) | 0.0240 | 0.0362 | 0.0000 |
+| frozen imagenet | 0.0914 | 0.1336 | 0.2828 |
+| random control | 0.1519 | 0.2432 | 0.3350 |
+
+**The trained encoder barely beats the random control** — 0.1456 vs 0.1519 on
+greenery. The margin is real but small.
+
+**Frozen ImageNet features clearly beat ours** — 0.0914 vs our 0.1456.
+Features never trained on this data retrieve attribute-matched streets better
+than the encoder trained on it.
+
+**The tabular baseline's win is trivial and must not be read as a result.** Its
+feature vector literally contains `green_view_index` and `building_view_index`
+and one-hot encodes `type_highway` — which is exactly why its road-type
+mismatch is 0.0000. It is scoring on the columns being scored. It is a sanity
+check on the metric, not a competitor.
+
+So on the task the project set out to do, the encoder failed. Stages 8 and 9
+establish why, and they agree with each other.
+
+## Stage 8 — UMAP ✅ (and it diagnoses Stage 7)
+
+Coloured by city: **20 tight, disjoint islands** with almost no overlap —
+exactly what a 90.89% city classifier should look like.
+
+Recoloured by greenery: greenery is roughly **uniform within each island**, and
+there is no greenery gradient across the space. Singapore's cluster is
+uniformly high-greenery, the rest uniformly pale. Greenery varies between
+clusters only because cities differ in greenery, not because the embedding
+encodes it.
+
+**The embedding is close to a city one-hot in disguise.** It has essentially no
+within-manifold structure corresponding to physical attributes. That fully
+explains Stage 7: once the query's own city is excluded, the nearest other-city
+neighbours are whichever island happens to sit closest in an arbitrary
+arrangement, carrying no attribute information.
+
+## Stage 9 — Grad-CAM ✅ (the news is bad, and it stays in)
+
+The heatmaps concentrate on:
+
+- **road surface and lane markings** — Berlin, Casablanca, Kampala and Jakarta
+  all light up across the tarmac in the lower half of the frame;
+- **crosswalk stripes** — Lima is the clearest case, the zebra markings are
+  almost the entire activation;
+- **bottom-of-frame camera furniture** — Kuwait City activates on the strip
+  where the dashcam's own text overlay and the vehicle bonnet sit.
+
+Very little activation lands on buildings, vegetation or skyline.
+
+This is exactly the shortcut CLAUDE.md's Stage 9 predicted ("licence plates,
+road markings, or vehicle shapes rather than the street itself"). It also
+reconciles the two headline numbers. Road markings, kerb geometry, tarmac
+colour and dashcam furniture are *superb* city identifiers — they are
+standardised nationally and the capture vehicle is often literally the same car
+— and near-useless for judging whether two streets look alike.
+
+**The pretext task failed, not the training.** City classification asks the
+encoder to find what *separates* cities; retrieval needs what they *share*.
+Those objectives are opposed, and 90.89% accuracy is evidence of the shortcut
+rather than evidence against it. The model did exactly what it was asked to do;
+it was asked for the wrong thing.
+
+A follow-up should change the objective, not the architecture: a contrastive or
+attribute-supervised objective, augmentations that destroy the shortcut
+(aggressive bottom-of-frame cropping, colour jitter on tarmac), or masking the
+road surface outright.
+
+## Stage 10 — notebook ✅
+
+`notebooks/parallel_streets.ipynb`, 28 cells, executed top to bottom with all
+outputs visible. Generated by `scripts/build_notebook.py` rather than
+hand-edited, per the rule against developing inside a `.ipynb`.
+`TRAIN_FROM_SCRATCH` defaults to `False` and loads the published checkpoint and
+cached embeddings; the `True` path applies the reduced T4 config from
+`config.yaml`. A markdown cell states plainly that reported results come from
+the full local run.
+
+---
+
+## Open questions for you
+
+1. **The negative result is the finding.** I have reported it as such rather
+   than tuning until it looked better. If you would rather the project
+   demonstrate a *working* doppelgänger retrieval, that needs a different
+   pretext task (contrastive), not more epochs — say the word and I will build
+   it as a Stage 11 comparison against this as the baseline.
+2. **The Colab clone URL in the notebook is a placeholder**
+   (`https://github.com/<user>/acv_training.git`). It needs your actual repo
+   before the notebook will run on a fresh Colab.
+3. **Checkpoints and embeddings are not in git** (~800 MB). For the notebook's
+   `False` path to work on Colab they need hosting somewhere fetchable.
