@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 import yaml
@@ -98,3 +99,50 @@ def add_derived(df: pd.DataFrame) -> pd.DataFrame:
     total = df["Total"].where(df["Total"] > 0)
     df["building_view_index"] = df["Building"] / total
     return df
+
+
+def flat_only(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep perspective + fisheye frames, drop 360-degree panoramas.
+
+    Panorama share is severely confounded with city (Lima 81.5%, Athens 68.2%,
+    Sao Paulo 0.0%). Training across mixed projections would let the encoder
+    separate cities on projection geometry rather than streetscape content -
+    precisely the shortcut Stage 9 exists to detect. Every one of the 20 cities
+    still clears the 5,000-image target after this filter (min: Casablanca at
+    9,089), so it costs the project nothing.
+    """
+    is_pano = df["pano_status"].fillna(False).astype(bool)
+    return df[(~is_pano) & df["projection_type"].isin(["perspective", "fisheye"])].copy()
+
+
+def sample_per_city(df: pd.DataFrame, n_per_city: int, seed: int) -> pd.DataFrame:
+    """Sample n_per_city images per city, spread round-robin across sequences.
+
+    Taking the first n rows would concentrate the sample in a handful of
+    sequences - and since a sequence is metres of one street, that would make
+    the later sequence-ID split both coarse and unrepresentative. Round-robin
+    over shuffled sequences maximises the number of distinct sequences present.
+    """
+    rng = np.random.default_rng(seed)
+    out = []
+    for city, g in df.groupby("city_ascii", sort=True):
+        buckets = []
+        for _, seq in g.groupby("sequence_id", sort=True):
+            idx = np.array(seq.index.to_numpy(), copy=True)
+            rng.shuffle(idx)
+            buckets.append(list(idx))
+        rng.shuffle(buckets)
+        picked, i = [], 0
+        while len(picked) < n_per_city:
+            progressed = False
+            for b in buckets:
+                if i < len(b):
+                    picked.append(b[i])
+                    progressed = True
+                    if len(picked) >= n_per_city:
+                        break
+            if not progressed:      # every sequence exhausted
+                break
+            i += 1
+        out.append(df.loc[picked])
+    return pd.concat(out, ignore_index=False)
