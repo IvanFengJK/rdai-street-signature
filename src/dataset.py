@@ -113,12 +113,31 @@ def _rand_crop_params(size, out):
     return i, j, out, out
 
 
+def _worker_init(worker_id: int) -> None:
+    """Seed each DataLoader worker deterministically.
+
+    The train-time augmentation draws from numpy's global RNG. DataLoader
+    workers are forked processes, so without this they would produce a
+    different augmentation stream on every run and 'train twice from the same
+    seed' could never reproduce - for reasons that have nothing to do with the
+    model.
+    """
+    import random as _random
+    base = torch.initial_seed() % (2 ** 31 - 1)
+    np.random.seed((base + worker_id) % (2 ** 31 - 1))
+    _random.seed(base + worker_id)
+
+
 def make_loaders(train_df, val_df, classes, cfg):
     dl = cfg["dataloader"]
+    seed = cfg["project"]["seed"]
+    gen = torch.Generator()
+    gen.manual_seed(seed)          # fixes the shuffle order too
     common = dict(batch_size=dl["batch_size"], num_workers=dl["num_workers"],
-                  pin_memory=True, persistent_workers=dl["num_workers"] > 0)
+                  pin_memory=True, persistent_workers=dl["num_workers"] > 0,
+                  worker_init_fn=_worker_init)
     tr = DataLoader(StreetDataset(train_df, classes, True, dl["image_size"]),
-                    shuffle=True, drop_last=True, **common)
+                    shuffle=True, drop_last=True, generator=gen, **common)
     va = DataLoader(StreetDataset(val_df, classes, False, dl["image_size"]),
                     shuffle=False, drop_last=False, **common)
     return tr, va
