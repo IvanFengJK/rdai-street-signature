@@ -7,7 +7,10 @@ data/raw/*
 
 # ---- artefacts ----
 checkpoints/
-outputs/
+outputs/*
+!outputs/*.png
+!outputs/*.csv
+!outputs/*.json
 embeddings/
 *.pt
 *.pth

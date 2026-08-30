@@ -1,0 +1,24 @@
+{
+  "stage7": {
+    "trained (ours)": {
+      "green_view_index": 0.1456196379,
+      "building_view_index": 0.2265736446,
+      "type_highway_mismatch": 0.3191489362
+    },
+    "tabular (baseline)": {
+      "green_view_index": 0.0239537379,
+      "building_view_index": 0.0361837513,
+      "type_highway_mismatch": 0.0
+    },
+    "frozen imagenet": {
+      "green_view_index": 0.091350096,
+      "building_view_index": 0.1335568092,
+      "type_highway_mismatch": 0.2828282828
+    },
+    "random control": {
+      "green_view_index": 0.1519269359,
+      "building_view_index": 0.2431906441,
+      "type_highway_mismatch": 0.335
+    }
+  }
+}

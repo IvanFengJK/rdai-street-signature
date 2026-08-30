@@ -1,0 +1,5 @@
+system,green_view_index,building_view_index,type_highway_mismatch
+trained (ours),0.14562,0.22657,0.31915
+tabular (baseline),0.02395,0.03618,0.0
+frozen imagenet,0.09135,0.13356,0.28283
+random control,0.15193,0.24319,0.335
