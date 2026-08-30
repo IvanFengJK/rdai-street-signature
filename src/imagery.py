@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import io
 import os
+import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -33,12 +34,47 @@ MLY_API = "https://graph.mapillary.com/{orig_id}?fields=thumb_2048_url&access_to
 _session = requests.Session()
 _session.headers.update({"User-Agent": "parallel-streets/0.1 (course project)"})
 
+# Both APIs rate-limit under concurrency. A first pass at 32 workers lost 3,120
+# Jakarta images to transient HTTP errors that succeed immediately when retried,
+# so every network call goes through this backoff.
+MAX_TRIES = 4
+BACKOFF_BASE = 1.7
+
+
+def _with_retry(fn, *a, **kw):
+    last = None
+    for attempt in range(MAX_TRIES):
+        try:
+            return fn(*a, **kw)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            # 409 is Azure's BlobArchived: KartaView has moved the image to
+            # archive-tier storage and it cannot be served at all. 410/404 are
+            # gone, 401/403 unauthorised. None of these are worth retrying.
+            if status is not None and status in (401, 403, 404, 409, 410):
+                raise
+            if attempt == MAX_TRIES - 1:
+                break
+            sleep = BACKOFF_BASE ** attempt + random.random()
+            if status == 429:
+                retry_after = getattr(e, "response", None)
+                ra = (retry_after.headers.get("Retry-After") if retry_after is not None
+                      else None)
+                sleep = max(sleep, float(ra) if ra and ra.isdigit() else 5.0)
+            time.sleep(sleep)
+    raise last
+
 
 def mapillary_token() -> str | None:
     return os.environ.get("MAPILLARY_TOKEN") or os.environ.get("MLY_TOKEN")
 
 
 def _resolve_kartaview(orig_id) -> str | None:
+    return _with_retry(_resolve_kartaview_once, orig_id)
+
+
+def _resolve_kartaview_once(orig_id) -> str | None:
     r = _session.get(KV_API.format(orig_id=orig_id), timeout=30)
     r.raise_for_status()
     data = r.json().get("result")
@@ -48,6 +84,10 @@ def _resolve_kartaview(orig_id) -> str | None:
 
 
 def _resolve_mapillary(orig_id, token: str) -> str | None:
+    return _with_retry(_resolve_mapillary_once, orig_id, token)
+
+
+def _resolve_mapillary_once(orig_id, token: str) -> str | None:
     r = _session.get(MLY_API.format(orig_id=orig_id, token=token), timeout=30)
     if r.status_code == 401:
         raise PermissionError("Mapillary rejected the access token (401)")
@@ -69,8 +109,12 @@ def fetch_one(row, out_dir: Path, resize_px: int, token: str | None) -> str:
             url = _resolve_mapillary(row.orig_id, token)
         if not url:
             return "no_url"
-        blob = _session.get(url, timeout=90).content
-        im = Image.open(io.BytesIO(blob)).convert("RGB")
+        def _get_decode():
+            resp = _session.get(url, timeout=90)
+            resp.raise_for_status()
+            return Image.open(io.BytesIO(resp.content)).convert("RGB")
+
+        im = _with_retry(_get_decode)
         # pre-resize: shortest side to resize_px, preserving aspect ratio
         w, h = im.size
         scale = resize_px / min(w, h)

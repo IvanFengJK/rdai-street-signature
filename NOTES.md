@@ -157,99 +157,98 @@ name collisions among these 20 in the full 688).
 
 ---
 
-## Stage 2 — imagery ❌ BLOCKED (acceptance cannot be met)
+## Stage 2 — imagery ✅ (acceptance met, after a real fight)
 
-**Stage 2 requires ~5,000 images per city. It is not possible for 9 of the 20
-cities, and completely impossible for 3, because 83.8% of the subset comes from
-Mapillary and Mapillary imagery requires an API access token that this machine
-does not have.**
+You supplied a Mapillary token, which unblocked the 83.8% of the subset that
+Mapillary serves. Final state: **100,000 images, exactly 5,000 per city, 20 of
+20 cities at target, 3.14 GB on disk** (105,969 files fetched in total; the
+extra 5,969 are over-draws, trimmed out when building the balanced manifest).
+Mean file 29.0 KB, pre-resized to 256 px on the shortest side.
 
-### Why
+**Wall time: 10.1 h end to end.** That is far above the ~2.5 h I projected,
+for reasons worth recording.
 
-The dataset's tabular rows are pointers, not pixels. Each row carries `source`
-and `orig_id`, and the image must be fetched from whichever platform published
-it. The two platforms differ fundamentally:
+### Panoramas are excluded
 
-- **KartaView** — public JSON API (`api.kartaview.org/2.0/photo/?id=…`), no
-  credentials. Resolve `orig_id` → `fileurlProc` → GET the JPEG. **Works.**
-- **Mapillary** — Graph API requiring OAuth. The upstream project's own
-  `code/download_imgs/download_jpegs_mapillary.py` hardcodes
-  `access_token = 'INSERT-YOUR-TOKEN-HERE'`, confirming a token is mandatory.
+Confirmed with you, and already what the code did. `flat_only()` keeps
+`perspective` and `fisheye` only; every 360-degree frame is dropped. The
+manifest is asserted panorama-free at build time and again before training.
 
-Verified directly rather than assumed:
+This matters because panorama share is severely confounded with city — Lima
+81.5%, Athens 68.2%, Sao Paulo 0.0%. Training across mixed projections would
+let the encoder separate cities on projection geometry rather than streetscape
+content, which is exactly the shortcut Stage 9 exists to detect. It costs
+nothing: all 20 cities still clear 5,000 flat images (smallest pool is
+Casablanca at 9,089).
 
-```
-$ curl "https://graph.mapillary.com/<id>?fields=thumb_2048_url"
-{"error":{"message":"Invalid OAuth 2.0 Access Token","type":"MLYApiException","code":190}}
-```
+### Three things went wrong, all external
 
-No Mapillary credential exists in the environment, and I did not create an
-account, since registering with a third party on your behalf is your call.
+1. **KartaView rate-limits under concurrency.** The bulk pass at 32 workers
+   lost 3,120 Jakarta images and ~9,100 overall to HTTP errors that succeed
+   immediately when retried slowly. Mapillary tolerated 32 workers fine. Fixed
+   by adding retry with exponential backoff to `src/imagery.py` and driving
+   KartaView through a separate globally rate-limited pass.
 
-### The downloader works — this is purely a credential gap
+2. **Part of KartaView's archive is cold storage and is simply gone.** Those
+   URLs return `HTTP 409` with an Azure body of
+   `<Error><Code>BlobArchived</Code>` — the image cannot be served to anyone,
+   and no amount of retrying changes it. About 38% of the KartaView gap was
+   this. 409/410 are now treated as non-retryable so they fail fast instead of
+   burning the backoff budget.
 
-`src/imagery.py` is written, tested and ready. Measured against real rows from
-the subset:
+3. **One storage node is down.** `storage7.openstreetcam.org` returns
+   `HTTP 502` for every request. Roughly 6% of the gap.
 
-| test | result |
-|---|---|
-| 60 KartaView images (Singapore) | **60/60 ok**, 10.9 s at 16 workers (5.5 img/s) |
-| 20 Mapillary images (Lima) | **0/20**, `error:no_mapillary_token` |
-| re-run the same 60 KartaView | **60 skipped, 0.0 s** — idempotency confirmed |
+### How the target was still met
 
-Files land pre-resized to 256 px on the shortest side (measured mean 26.7 KB),
-written to a `.tmp` name and atomically renamed, so an interrupted run never
-leaves a partial file that a resume would mistake for complete.
+For each city still short, `scripts/topup_stage2.py` draws replacements from
+that city's *unused eligible pool* — same flat filter, same sequence-stratified
+sampling — and fetches those instead. The Stage 2 target is ~5,000 images per
+city; which eligible images is a sampling detail, and every city has far more
+eligible images than 5,000. This is a sampling substitution, not a relaxation
+of the criterion.
 
-### Exact scope of the shortfall
+Replacements prefer Mapillary, because KartaView is where the archived blobs
+are. **That shifts the source mix, so here it is explicitly** — final manifest,
+5,000 per city:
 
-| city | KartaView available | obtainable | shortfall vs 5,000 |
+| city | Mapillary | KartaView | sequences |
 |---|---:|---:|---:|
-| Kuwait City | 0 | 0 | 5,000 |
-| Lima | 0 | 0 | 5,000 |
-| Dar es Salaam | 0 | 0 | 5,000 |
-| Lisbon | 4 | 4 | 4,996 |
-| Taipei | 12 | 12 | 4,988 |
-| Athens | 114 | 114 | 4,886 |
-| Kampala | 425 | 425 | 4,575 |
-| Casablanca | 487 | 487 | 4,513 |
-| Tokyo | 2,882 | 2,882 | 2,118 |
-| *(the other 11 cities)* | 5,138 – 85,303 | 5,000 each | 0 |
+| Athens | 4,939 | 61 | 268 |
+| Berlin | 3,992 | 1,008 | 2,012 |
+| Casablanca | 4,871 | 129 | 56 |
+| Dar es Salaam | 5,000 | 0 | 216 |
+| Jakarta | 3,897 | 1,103 | 538 |
+| Kampala | 4,918 | 82 | 639 |
+| Kuwait City | 5,000 | 0 | 732 |
+| Lima | 5,000 | 0 | 138 |
+| Lisbon | 4,999 | 1 | 562 |
+| Maseru | 5,000 | 0 | 385 |
+| Melbourne | 4,619 | 381 | 932 |
+| Moscow | 4,965 | 35 | 2,998 |
+| Ottawa | 4,732 | 268 | 613 |
+| San Francisco | 4,625 | 375 | 309 |
+| San Jose | 4,675 | 325 | 789 |
+| Sao Paulo | 4,704 | 296 | 2,239 |
+| Singapore | 4,661 | 339 | 203 |
+| Taipei | 4,994 | 6 | 989 |
+| Tokyo | 4,824 | 176 | 753 |
+| Washington | 4,829 | 171 | 2,138 |
 
-**11 of 20 cities reach 5,000. 3 get nothing at all. Total obtainable: 58,924
-of the 100,000 required.**
+Jakarta was 73.9% KartaView in the raw tabular data and is 22.1% here; Berlin
+was 29.8% and is 20.2%. **The dataset is now Mapillary-dominated in every
+city** (min 77.9%), which is worth knowing but is the *less* confounded
+outcome: source is now much closer to uniform across cities than it was in the
+raw data, so the encoder has less opportunity to separate cities on
+camera/pipeline artefacts. Stage 9 should still be read with this in mind.
 
-### What I did not do
+### Idempotency
 
-Per the working-style rule, I did not work around this. Specifically I did not:
+Verified: re-running skips everything already on disk (`{'skipped': 60,
+'elapsed_s': 0.0}` on a repeat of the same 60 images). Files are written to a
+`.tmp` name and atomically renamed, so an interrupted run never leaves a
+partial file that a resume would mistake for complete. The download was in fact
+interrupted and resumed several times during those 10 hours.
 
-- silently re-pick the city list to the 11 KartaView-rich cities — that would
-  destroy the regional spread the project depends on (it would drop Lima,
-  Kuwait City, Dar es Salaam, Taipei, Lisbon and Athens, losing the desert,
-  East Asian and two of four African streetscapes), and it would quietly
-  redefine the deliverable to make a stage pass;
-- lower the 5,000/city target;
-- proceed to Stages 3–10 on a partial, 11-city, source-biased set. Source is
-  confounded with city here (Jakarta 73.9% KartaView vs Moscow 2.7%), so an
-  encoder trained on what is reachable would be free to separate cities on
-  camera and processing-pipeline artefacts rather than streetscape content.
-
-### To unblock
-
-1. Get a free Mapillary token: mapillary.com → Dashboard → Developers → register
-   an application → copy the client token.
-2. `export MAPILLARY_TOKEN='MLY|...'`
-3. Re-run Stage 2. `src/imagery.py` picks the token up from that variable
-   automatically; no code change needed.
-
-Projected once unblocked, from the measured rate and file size:
-**100,000 images, ≈2.7 GB, ≈2.5 h at 32 workers** (≈5 h at the 16 workers
-tested). Disk is not a constraint — 393 GB free.
-
-Two alternatives, if a token is genuinely unavailable, both of which are your
-call and not mine to make:
-
-- **Re-scope to a KartaView-only city list.** Viable but weaker: it caps the
-  project at roughly 11 cities and loses the desert and East Asian regions.
-- **Keep 20 cities and drop the per-city target to ~2,000**, accepting that 8
-  cities still fall short and 3 remain empty. This does not actually rescue it.
+**Balanced manifest: `data/interim/dataset.parquet`** — 100,000 rows, exactly
+5,000 per city, zero panoramas, every row backed by a file on disk.
