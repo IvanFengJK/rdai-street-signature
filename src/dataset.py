@@ -43,7 +43,11 @@ def build_split(df: pd.DataFrame, val_fraction: float, seed: int
     rng = np.random.default_rng(seed)
     val_seqs: set = set()
     for _, g in df.groupby("city_ascii", sort=True):
-        seqs = g.sequence_id.unique()
+        # np.asarray(..., dtype=object): pandas may back this with an
+        # ArrowStringArray, which numpy cannot shuffle safely (it can
+        # duplicate entries). A duplicated sequence id here would
+        # silently corrupt the split, so convert first.
+        seqs = np.asarray(g.sequence_id.unique(), dtype=object)
         rng.shuffle(seqs)
         counts = g.sequence_id.value_counts()
         target = val_fraction * len(g)
