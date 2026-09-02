@@ -18,10 +18,8 @@ import time
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 from torch.amp import GradScaler, autocast
 
-from .train import set_seed          # reuse the Stage 5 seeding helper
 from .vicreg import vicreg_loss
 
 
@@ -139,6 +137,15 @@ def train_ssl(model, train_loader, val_loader, cfg: dict, tag: str,
             nb += 1
             gstep += 1
 
+            every = ssl_cfg.get("log_every_steps", 0)
+            if every and nb % every == 0:
+                el = time.monotonic() - t0
+                ips = nb * xa.size(0) * 2 / el          # two views per image
+                eta = (steps_per_epoch - nb) * el / nb
+                print(f"  ep{ep+1:>3} step {nb:>4}/{steps_per_epoch}  "
+                      f"total={parts['total']:.3f}  std={parts['std_mean']:.3f}  "
+                      f"{ips:.0f} img/s  epoch ETA {eta/60:.1f} min", flush=True)
+
         row = {"epoch": ep + 1, "lr": lr, "secs": round(time.monotonic() - t0, 1)}
         row.update({k: s / max(1, nb) for k, s in acc.items()})
 
@@ -172,5 +179,5 @@ def train_ssl(model, train_loader, val_loader, cfg: dict, tag: str,
 
     json.dump({"history": history, "cfg": cfg["stage11"],
                "seed": cfg["project"]["seed"]},
-              open(out_dir / f"{tag}_history.json", "w"), indent=2)
+              open(out_dir / f"{tag}_history.json", "w", encoding="utf-8"), indent=2)
     return history

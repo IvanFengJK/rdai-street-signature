@@ -127,6 +127,9 @@ stage11:
     amp: true
     num_workers: 8
     val_every: 5                     # VICReg loss on the val split, for monitoring
+    log_every_steps: 25              # intra-epoch progress. Without it a merely
+                                     # slow epoch looks identical to a stalled
+                                     # one, which cost 30 blind minutes once.
 
   projector:
     # VICReg's paper uses 8192-wide on ImageNet-1k (1.28M images). At 100k
