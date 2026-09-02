@@ -105,3 +105,69 @@ notebook:
     epochs: 3
     batch_size: 32
     images_per_city: 500
+
+# ============================================================================
+# Stage 11 — city-invariant self-supervised representation learning
+# Additive only. Nothing above this line is modified; Stages 0-10 keep their
+# artifacts, checkpoints and outputs untouched.
+# ============================================================================
+stage11:
+  out_dir: checkpoints/stage11       # never writes alongside runA/runB
+  emb_dir: data/interim              # embeddings named emb_s11_<tag>.npz
+  train_on: train_split              # SSL sees ONLY the 79,707 train rows
+
+  ssl:
+    method: vicreg                   # do not silently substitute another SSL method
+    epochs: 100
+    batch_size: 128                  # 12.05 GB peak measured on the 3080 Ti
+    image_size: 224
+    lr: 0.001
+    weight_decay: 0.000001           # VICReg uses a very low wd
+    warmup_epochs: 10
+    amp: true
+    num_workers: 8
+    val_every: 5                     # VICReg loss on the val split, for monitoring
+
+  projector:
+    # VICReg's paper uses 8192-wide on ImageNet-1k (1.28M images). At 100k
+    # images 2048 is the appropriate scale, and measured only ~17% slower
+    # at 8192 anyway - the backbone dominates.
+    hidden_dim: 2048
+    output_dim: 2048
+    n_layers: 3
+
+  vicreg:
+    sim_coeff: 25.0                  # invariance
+    std_coeff: 25.0                  # variance
+    cov_coeff: 1.0                   # covariance
+    eps: 0.0001
+
+  augmentation:
+    random_resized_crop: {scale_min: 0.3, scale_max: 1.0}
+    horizontal_flip: 0.5
+    color_jitter: {probability: 0.8, brightness: 0.4, contrast: 0.4,
+                   saturation: 0.2, hue: 0.1}
+    grayscale: 0.2
+    gaussian_blur: {probability: 0.5, sigma_min: 0.1, sigma_max: 2.0}
+    random_erasing: 0.25
+    # Stage 9 found the encoder reading bottom-of-frame camera furniture.
+    # OFF for Experiment A: masking it is Experiment C, tested separately so
+    # the effect of SSL and the effect of masking stay distinguishable.
+    bottom_mask:
+      enabled: false
+      probability: 0.5
+      min_fraction: 0.10
+      max_fraction: 0.20
+
+  # Experiment B only. Off for A.
+  adversarial:
+    enabled: false
+    lambda: 0.0
+    hidden_dim: 512
+
+  # City linear probe - a DIAGNOSTIC, never a training objective.
+  probe:
+    epochs: 40
+    lr: 0.01
+    weight_decay: 0.0
+    batch_size: 1024
