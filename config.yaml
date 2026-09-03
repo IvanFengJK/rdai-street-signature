@@ -162,11 +162,21 @@ stage11:
       min_fraction: 0.10
       max_fraction: 0.20
 
-  # Experiment B only. Off for A.
+  # Experiment B. Off for A.
+  #
+  # SCOPE DECISION (2026-09-03): the originally specified sweep was
+  # lambda in {0, 0.05, 0.10, 0.25, 0.50}. Measured cost on the
+  # power-capped GPU is ~50 h per run, so the sweep alone was ~200 h.
+  # Reduced to a SINGLE contrast at lambda=0.10 against the lambda=0
+  # run (Experiment A). Rationale in NOTES.md - this is a deliberate,
+  # recorded reduction, not a silent one.
   adversarial:
     enabled: false
     lambda: 0.0
     hidden_dim: 512
+    # planned single contrast; sweep values kept for the record
+    planned_lambda: 0.10
+    originally_specified_sweep: [0.0, 0.05, 0.10, 0.25, 0.50]
 
   # City linear probe - a DIAGNOSTIC, never a training objective.
   probe:

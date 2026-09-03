@@ -418,3 +418,150 @@ the full local run.
    before the notebook will run on a fresh Colab.
 3. **Checkpoints and embeddings are not in git** (~800 MB). For the notebook's
    `False` path to work on Colab they need hosting somewhere fetchable.
+
+---
+
+# Stage 11 — city-invariant self-supervised representation learning
+
+A controlled follow-up to the Stage 7 negative result. Stages 0-10 are
+untouched and remain the baseline; everything here writes to
+`checkpoints/stage11/`, `data/interim/emb_s11_*.npz` and
+`outputs/stage11_*`.
+
+**Research question.** Does replacing the city-classification pretext task with
+self-supervised learning produce embeddings that capture transferable street
+appearance rather than city identity?
+
+## Setup
+
+- Same 100,000 images, same 20 cities, same sequence-disjoint split
+  (79,707 train / 20,293 val), rule 1 re-asserted in every script.
+- Same timm ResNet50, same 2048-d pooled representation. Only the objective
+  changes, so the comparison isolates the objective rather than confounding it
+  with architecture.
+- VICReg (invariance / variance / covariance), 3-layer 2048-wide expander.
+- Evaluation attributes (greenery, building density, road type) and the
+  prohibited perception scores are never used in training. The SSL dataset
+  reads only pixels; the adversary would read only the city label.
+
+**The Stage 7 query set is now frozen** to `data/interim/stage7_queries.npz`.
+Stage 7 derived its 30,000-image subsample and 20 queries from the seed at
+runtime, which is reproducible only while nobody touches the derivation. It is
+now asserted, not recomputed. Validation: the four baseline rows reproduce the
+original Stage 7 numbers to four decimals, so Stage 11 results are directly
+comparable to the originals.
+
+## Experiment A — VICReg (in progress)
+
+| epoch | greenery ↓ | bldg density ↓ | road mismatch ↓ | city probe |
+|---|---:|---:|---:|---:|
+| trained city encoder (Stage 5) | 0.1456 | 0.2266 | 0.3191 | 0.9063 |
+| frozen imagenet | 0.0914 | **0.1336** | **0.2828** | 0.7738 |
+| VICReg @ epoch 1 | 0.1156 | 0.2065 | 0.3650 | 0.4864 |
+| **VICReg @ epoch 30** | **0.0879** | 0.1348 | 0.4118 | 0.8182 |
+| tabular (oracle-ish sanity check) | 0.0240 | 0.0362 | 0.0000 | - |
+| random control | 0.1519 | 0.2432 | 0.3350 | - |
+
+**VICReg beats frozen ImageNet on greenery** (0.0879 vs 0.0914) and ties it on
+building density. This is the first point in the project where a model we
+trained beats the untrained baseline on the retrieval metric, and it is far
+ahead of the Stage 5 city encoder on both continuous attributes.
+
+**But road-type mismatch is worse than random** (0.4118 vs 0.3350) and got
+*worse* with training (0.3650 at epoch 1). VICReg improves at matching
+continuous appearance attributes while degrading at matching road function. No
+explanation yet; recorded rather than rationalised.
+
+### The finding that revises Stage 9
+
+**The city probe rose from 0.486 to 0.818 with no city label anywhere in
+training.** Self-supervised learning on this data spontaneously accumulates
+city identity, approaching the supervised encoder's 0.906.
+
+That undercuts the Stage 9 story. The original explanation was that the
+city-classification *objective* produced the shortcut. But city information
+accumulates without any city objective, and it accumulates *while retrieval
+improves*: within VICReg training, more recoverable city information went with
+better retrieval, not worse. Across systems the relationship is not monotonic
+either - Stage 5 has the most city information and the worst retrieval, while
+VICReg has more than ImageNet and retrieves slightly better on greenery.
+
+This is Outcome 4 from the Stage 11 brief: the models improve while city
+remains easily recoverable, so **the original explanation was incomplete and
+needs revising**. It also directly challenges the premise of Experiment B -
+that suppressing city identity should improve retrieval.
+
+### Loss-curve caveat, recorded because it was nearly misleading
+
+Train loss fell monotonically (20.65 -> 13.99 by epoch 41) while the val VICReg
+loss *rose* (22.7 -> 46.7). That divergence looked like a failure and was not:
+the epoch-30 evaluation showed the representation improving substantially over
+epoch 1. Two reasons the val number is a weak proxy: it is computed under
+`model.eval()`, where the expander's BatchNorm uses running rather than batch
+statistics, and VICReg's variance and covariance terms are batch statistics by
+construction. Val is monitoring-only and never used for model selection.
+**Pretext-task loss is not representation quality** - which is the same lesson
+Stage 7 taught, arriving from the other direction.
+
+`std_mean` climbed 0.305 -> ~0.62 and plateaued there, short of the 1.0 the
+variance hinge targets. Covariance rose monotonically to ~3.2. Both suggest the
+covariance coefficient of 1.0 may be too weak at this dataset scale.
+
+## Scope reduction (deliberate, not silent)
+
+The brief specified an adversarial sweep over
+lambda in {0, 0.05, 0.10, 0.25, 0.50}, plus Experiment C (bottom-frame
+masking). **Measured** cost on this machine is ~50 h per run, so:
+
+| planned | runs | GPU hours |
+|---|---:|---:|
+| full lambda sweep | 4 more | ~200 h |
+| Experiment C | 1 | ~50 h |
+
+Reduced to **a single adversarial contrast at lambda=0.10** against the
+lambda=0 run (Experiment A), and **Experiment C dropped**.
+
+Reasons, in order of weight:
+
+1. **The headline findings are already measured.** VICReg beating frozen
+   ImageNet, and the city-probe result overturning Stage 9, are both in hand at
+   epoch 30. Neither improves with a denser sweep.
+2. **The epoch-30 result makes one contrast sufficient and more interesting
+   than five.** We found city information rising *while* retrieval improved,
+   contradicting the sweep's premise. A single lambda=0.10 run tests that
+   directly; tracing a curve through a premise the data already questions is
+   not a good use of 200 h.
+3. **This is a course project.** Stages 0-10 already satisfy the brief in full.
+   The marginal value of sweep points 2-5 is close to zero for the deliverable.
+4. Stage 9's camera-artefact finding is already reported honestly in the
+   notebook; Experiment C would confirm it, not change it.
+
+This is recorded in `config.yaml` under `stage11.adversarial` alongside
+`originally_specified_sweep`, so the reduction is visible in the config rather
+than only in prose.
+
+## Machine constraint that shaped everything
+
+The GPU ran the whole of Stage 11 **power-capped at 35 W against an 80 W
+default** (`sw_power_cap: Active`, clock oscillating 210-1260 MHz against a
+2100 MHz maximum). Measured effect: 80-92 img/s against 299 img/s benchmarked
+unthrottled, i.e. ~32 min/epoch instead of ~9.
+
+Two hypotheses were tested and one survived:
+
+- **Charging budget - disproved.** The battery was at 12% and charging at 46 W
+  when first observed. It reached 100% and the cap did not move.
+- **BIOS `Graphics = Hybrid Graphics`** - the surviving explanation, read from
+  HP's WMI BIOS interface on this ZBook Studio 16 G9. Not changed: it needs a
+  reboot into F10 and is a firmware change that should be a deliberate act, not
+  a side effect of a training job.
+
+`nvidia-smi -pl 80` fails from both WSL and Windows with *"not supported in
+current scope"*. That is not a permissions issue - power-limit control is a
+Quadro/Tesla feature, and `Requested Power Limit: N/A` confirms the clamp is
+imposed below the driver.
+
+Also measured: **running the evaluation concurrently with training is not
+free.** Epoch 2 took 73 min against 32 min for epoch 1 because the embedding
+extraction was competing for the capped GPU. Intermediate evaluations were
+reduced accordingly.
