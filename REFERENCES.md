@@ -71,7 +71,7 @@ data.
 
 **How this project relates.** The most direct methodological parallel to our
 second half. Our shortcut audit is an independent, concrete instance of exactly
-their concern: capture metadata alone predicts city at **0.9233 on our data,
+their concern: capture metadata alone predicts city at **0.9249 on our data,
 exceeding the pixel model's 0.9063**. Our cross-campaign holdout is our attempt at
 their replicability test — and it is where we found that our own first version of
 that test was contaminated. We regard their framing as the correct one for

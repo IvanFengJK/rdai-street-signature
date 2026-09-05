@@ -617,8 +617,14 @@ question it is the phenomenon itself.
 
 # Shortcut audit
 
-**City is 92.33% predictable from capture metadata alone — no pixels —
+**City is 92.49% predictable from capture metadata alone — no pixels —
 exceeding the Stage 5 pixel encoder's 90.63%.**
+
+*(Correction: the first ad-hoc measurement of this gave 92.33% using
+`max_iter=200`. The committed, reproducible `scripts/shortcut_audit.py` uses
+`max_iter=150` and yields 92.49%. The docs and notebook quote 92.49% so that a
+reader running the script sees the number they are told to expect. The
+qualitative claim — metadata alone exceeds the pixel model — is unchanged.)*
 
 Permutation importance: year +0.50, month +0.45, width +0.22, height +0.18,
 hour +0.16, projection +0.11. Cities were collected as distinct campaigns:

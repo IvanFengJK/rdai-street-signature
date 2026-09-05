@@ -51,7 +51,7 @@ be meaningless without this safeguard.
 | Reproducibility, two runs from one seed | **bit-identical** (every weight tensor) |
 | Cross-city physical retrieval, city encoder | 0.1344 vs 0.1519 random — **fails** |
 | VICReg (100 epochs) vs frozen ImageNet | **not significant**, CI crosses zero |
-| City from **capture metadata alone**, no pixels | **0.9233** — *exceeds* the pixel model |
+| City from **capture metadata alone**, no pixels | **0.9249** — *exceeds* the pixel model |
 | **Clean cross-campaign, visual representation** | **0.8892** |
 | Clean cross-campaign, metadata only | **0.1160** |
 | Chance | **0.0500** |
@@ -111,7 +111,7 @@ emerged from a chain of failures and self-corrections:
   evaluation defect found in our own code   12/20 queries returned nothing
         │                                    → corrected as Stage 7b
         ▼
-  metadata shortcut audit                   0.9233 without pixels (!)
+  metadata shortcut audit                   0.9249 without pixels (!)
         │                                    → accuracy alone proves nothing
         ▼
   first campaign test was CONTAMINATED      81% of the test set had been
@@ -164,7 +164,7 @@ uniquely intrinsic to a city, or free of every possible collection artefact.
 
 - **Only 20 cities**, 5,000 images each. Nothing generalises to the full 688.
 - **Collection and campaign bias is severe** — capture metadata alone predicts
-  city at 0.9233. The cross-campaign diagnostic addresses the *temporal* part,
+  city at 0.9249. The cross-campaign diagnostic addresses the *temporal* part,
   not all of it.
 - **Contributor identity is unavailable** in our cached fields, so a contributor
   using the same camera across both periods cannot be excluded. This is the most

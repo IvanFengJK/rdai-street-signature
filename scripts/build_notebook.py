@@ -97,7 +97,7 @@ print("CUDA:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "
 """),
 
 md("""
-The checkpoint and cached embeddings are 1.28 GB and live outside git. The next
+The checkpoint and cached embeddings are 1.37 GB and live outside git. The next
 cell fetches and checksum-verifies whatever is missing — see
 [ARTIFACTS.md](../ARTIFACTS.md).
 """),
@@ -113,7 +113,7 @@ if missing:
     for f in missing:
         FA.fetch(f, *FA.ARTIFACTS[f], ARTIFACT_BASE)
 else:
-    print("all 4 artifacts present and checksum-verified")
+    print(f"all {len(FA.ARTIFACTS)} artifacts present and checksum-verified")
 """),
 
 # ------------------------------------------------------------------ 1
@@ -412,7 +412,7 @@ for k, v in aud["permutation_importance"].items():
 """),
 
 md("""
-**Capture metadata alone reaches 0.9233 — higher than the pixel encoder's
+**Capture metadata alone reaches 0.9249 — higher than the pixel encoder's
 0.9063.**
 
 The signal is dominated by **year (+0.50)** and **month (+0.45)**. The 20 cities
@@ -475,7 +475,7 @@ md("""
 
 *8,268 unseen images / 1,350 sequences / 19 cities.*
 
-The metadata model collapses from 0.9233 to 0.1160 once it must generalise
+The metadata model collapses from 0.9249 to 0.1160 once it must generalise
 across capture periods, while the visual representation holds at 0.8892.
 
 **The dominant temporal/capture metadata confound does not explain the encoder's
@@ -651,7 +651,7 @@ md("""
   cities in the full dataset.
 - **Collection and campaign bias is severe.** Cities were photographed in
   distinct periods with distinct equipment; capture metadata alone predicts city
-  at 0.9233. The cross-campaign diagnostic addresses the temporal part of this,
+  at 0.9249. The cross-campaign diagnostic addresses the temporal part of this,
   not all of it.
 - **Contributor identity is unavailable** in our cached fields, so we cannot rule
   out a contributor using the same camera across both capture periods. This is
