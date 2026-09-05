@@ -20,7 +20,7 @@ from pathlib import Path
 # SET THIS ONCE. Everything else picks it up. See ARTIFACTS.md > Hosting.
 ARTIFACT_BASE = os.environ.get(
     "ARTIFACT_BASE",
-    "https://github.com/YOUR-GITHUB-USERNAME/street-signatures"
+    "https://github.com/IvanFengJK/rdai-street-signature"
     "/releases/download/v1.0-artifacts",
 )
 # ---------------------------------------------------------------------------

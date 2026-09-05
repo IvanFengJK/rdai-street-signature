@@ -2,7 +2,7 @@
 
 **Learning and auditing visual city identity from ordinary street scenes**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR-GITHUB-USERNAME/street-signatures/blob/main/notebooks/street_signatures.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/IvanFengJK/rdai-street-signature/blob/main/notebooks/street_signatures.ipynb)
 
 > **Can a trained visual encoder discover what makes ordinary street scenes
 > distinctive of a city — and can we distinguish genuine visual structure from
@@ -183,8 +183,8 @@ The notebook runs top to bottom on a **Colab T4** and defaults to loading the
 published checkpoint and cached embeddings.
 
 ```bash
-git clone https://github.com/YOUR-GITHUB-USERNAME/street-signatures.git
-cd street-signatures
+git clone https://github.com/IvanFengJK/rdai-street-signature.git
+cd rdai-street-signature
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/fetch_artifacts.py   # 1.28 GB, checksum-verified
 .venv/bin/python -c "import torch; print(torch.__version__, torch.cuda.is_available())"

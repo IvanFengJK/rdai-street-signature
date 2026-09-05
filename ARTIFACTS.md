@@ -85,7 +85,7 @@ with their exact filenames. Then set, in one place only —
 `scripts/fetch_artifacts.py`:
 
 ```
-https://github.com/YOUR-GITHUB-USERNAME/street-signatures/releases/download/v1.0-artifacts
+https://github.com/IvanFengJK/rdai-street-signature/releases/download/v1.0-artifacts
 ```
 
 Any stable public HTTPS directory works — a Zenodo deposit (which also mints a

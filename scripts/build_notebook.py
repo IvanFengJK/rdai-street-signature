@@ -29,7 +29,7 @@ md("""
 
 *Learning and auditing visual city identity from ordinary street scenes*
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR-GITHUB-USERNAME/street-signatures/blob/main/notebooks/street_signatures.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/IvanFengJK/rdai-street-signature/blob/main/notebooks/street_signatures.ipynb)
 
 **Research question — can a trained visual encoder discover what makes ordinary
 street scenes distinctive of a city, and can we distinguish genuine visual
@@ -68,7 +68,7 @@ TRAIN_FROM_SCRATCH = False   # True genuinely retrains on a T4 with a reduced co
 code("""
 # ---------------------------------------------------------------------------
 # The only two things to configure. See ARTIFACTS.md.
-GITHUB_REPO   = "YOUR-GITHUB-USERNAME/street-signatures"
+GITHUB_REPO   = "IvanFengJK/rdai-street-signature"
 ARTIFACT_BASE = f"https://github.com/{GITHUB_REPO}/releases/download/v1.0-artifacts"
 # ---------------------------------------------------------------------------
 
