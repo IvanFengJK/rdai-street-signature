@@ -1,0 +1,199 @@
+{
+  "fisheye_share": {
+    "min": 0.0,
+    "median": 0.0335,
+    "max": 0.8374,
+    "argmax": "Taipei"
+  },
+  "kartaview_share": {
+    "min": 0.0,
+    "median": 0.03,
+    "max": 0.2206,
+    "argmax": "Jakarta"
+  },
+  "single-year_share": {
+    "min": 0.2344,
+    "median": 0.4401,
+    "max": 0.927,
+    "argmax": "Casablanca"
+  },
+  "single-month_share": {
+    "min": 0.1196,
+    "median": 0.3729,
+    "max": 0.927,
+    "argmax": "Casablanca"
+  },
+  "metadata_only": [
+    {
+      "subset": "current dataset (all)",
+      "n": 100000,
+      "n_cities": 20,
+      "metadata_only_acc": 0.9249002118957276,
+      "chance": 0.05
+    },
+    {
+      "subset": "perspective only",
+      "n": 78043,
+      "n_cities": 20,
+      "metadata_only_acc": 0.9211356466876972,
+      "chance": 0.05
+    },
+    {
+      "subset": "perspective + years 2018-2022",
+      "n": 50825,
+      "n_cities": 20,
+      "metadata_only_acc": 0.9081444001167656,
+      "chance": 0.05
+    }
+  ],
+  "permutation_importance": {
+    "year": 0.5067500000000001,
+    "month": 0.4443333333333334,
+    "width": 0.24533333333333332,
+    "height": 0.17383333333333337,
+    "hour": 0.1684166666666667,
+    "proj_fisheye": 0.12658333333333335
+  },
+  "cross_campaign_feasibility": [
+    {
+      "city": "Casablanca",
+      "cut_year": 2021,
+      "early": 8547,
+      "late": 542,
+      "smaller_side": 542
+    },
+    {
+      "city": "Lima",
+      "cut_year": 2017,
+      "early": 20709,
+      "late": 798,
+      "smaller_side": 798
+    },
+    {
+      "city": "Athens",
+      "cut_year": 2019,
+      "early": 31551,
+      "late": 1607,
+      "smaller_side": 1607
+    },
+    {
+      "city": "Dar es Salaam",
+      "cut_year": 2018,
+      "early": 2761,
+      "late": 26885,
+      "smaller_side": 2761
+    },
+    {
+      "city": "Taipei",
+      "cut_year": 2020,
+      "early": 7121,
+      "late": 7866,
+      "smaller_side": 7121
+    },
+    {
+      "city": "Jakarta",
+      "cut_year": 2020,
+      "early": 9128,
+      "late": 84562,
+      "smaller_side": 9128
+    },
+    {
+      "city": "Singapore",
+      "cut_year": 2019,
+      "early": 11278,
+      "late": 11048,
+      "smaller_side": 11048
+    },
+    {
+      "city": "Kampala",
+      "cut_year": 2019,
+      "early": 17006,
+      "late": 12099,
+      "smaller_side": 12099
+    },
+    {
+      "city": "Melbourne",
+      "cut_year": 2020,
+      "early": 17837,
+      "late": 13296,
+      "smaller_side": 13296
+    },
+    {
+      "city": "Ottawa",
+      "cut_year": 2017,
+      "early": 13411,
+      "late": 38004,
+      "smaller_side": 13411
+    },
+    {
+      "city": "Maseru",
+      "cut_year": 2017,
+      "early": 16114,
+      "late": 17111,
+      "smaller_side": 16114
+    },
+    {
+      "city": "Kuwait City",
+      "cut_year": 2022,
+      "early": 19931,
+      "late": 42557,
+      "smaller_side": 19931
+    },
+    {
+      "city": "Tokyo",
+      "cut_year": 2019,
+      "early": 21591,
+      "late": 34314,
+      "smaller_side": 21591
+    },
+    {
+      "city": "San Jose",
+      "cut_year": 2018,
+      "early": 34823,
+      "late": 23477,
+      "smaller_side": 23477
+    },
+    {
+      "city": "San Francisco",
+      "cut_year": 2017,
+      "early": 37395,
+      "late": 27331,
+      "smaller_side": 27331
+    },
+    {
+      "city": "Lisbon",
+      "cut_year": 2019,
+      "early": 28354,
+      "late": 29446,
+      "smaller_side": 28354
+    },
+    {
+      "city": "Moscow",
+      "cut_year": 2021,
+      "early": 65500,
+      "late": 49539,
+      "smaller_side": 49539
+    },
+    {
+      "city": "Sao Paulo",
+      "cut_year": 2019,
+      "early": 52688,
+      "late": 72260,
+      "smaller_side": 52688
+    },
+    {
+      "city": "Washington",
+      "cut_year": 2021,
+      "early": 54951,
+      "late": 65621,
+      "smaller_side": 54951
+    },
+    {
+      "city": "Berlin",
+      "cut_year": 2021,
+      "early": 72833,
+      "late": 86186,
+      "smaller_side": 72833
+    }
+  ]
+}
