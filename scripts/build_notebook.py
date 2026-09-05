@@ -7,7 +7,7 @@ the training code that produced the assessed encoder is shown and runnable.
 import json
 from pathlib import Path
 
-NB = Path("notebooks/parallel_streets.ipynb")
+NB = Path("notebooks/street_signatures.ipynb")
 
 
 def _lines(src):
@@ -25,7 +25,11 @@ def code(src):
 
 cells = [
 md("""
-# What makes an ordinary street look like this city?
+# Street Signatures — What Makes a City Look Like Itself?
+
+*Learning and auditing visual city identity from ordinary street scenes*
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR-GITHUB-USERNAME/street-signatures/blob/main/notebooks/street_signatures.ipynb)
 
 **Research question — can a trained visual encoder discover what makes ordinary
 street scenes distinctive of a city, and can we distinguish genuine visual
@@ -62,12 +66,21 @@ TRAIN_FROM_SCRATCH = False   # True genuinely retrains on a T4 with a reduced co
 """),
 
 code("""
-import os, sys, subprocess
+# ---------------------------------------------------------------------------
+# The only two things to configure. See ARTIFACTS.md.
+GITHUB_REPO   = "YOUR-GITHUB-USERNAME/street-signatures"
+ARTIFACT_BASE = f"https://github.com/{GITHUB_REPO}/releases/download/v1.0-artifacts"
+# ---------------------------------------------------------------------------
+
+import os, sys, subprocess, warnings
+warnings.filterwarnings("ignore")          # keeps local paths out of the output
+
 IN_COLAB = "google.colab" in sys.modules
+REPO_DIR = GITHUB_REPO.split("/")[-1]
 if IN_COLAB:
-    if not os.path.exists("acv_training"):
-        subprocess.run(["git", "clone", "https://github.com/<user>/acv_training.git"], check=False)
-    os.chdir("acv_training")
+    if not os.path.exists(REPO_DIR):
+        subprocess.run(["git", "clone", f"https://github.com/{GITHUB_REPO}.git"], check=False)
+    os.chdir(REPO_DIR)
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
                     "timm==1.0.26", "umap-learn", "grad-cam"], check=False)
 sys.path.insert(0, os.getcwd())
@@ -81,6 +94,26 @@ pd.set_option("display.width", 200)
 print("torch", torch.__version__, "| torchvision", torchvision.__version__,
       "| timm", timm.__version__)
 print("CUDA:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU only")
+"""),
+
+md("""
+The checkpoint and cached embeddings are 1.28 GB and live outside git. The next
+cell fetches and checksum-verifies whatever is missing — see
+[ARTIFACTS.md](../ARTIFACTS.md).
+"""),
+
+code("""
+sys.path.insert(0, "scripts")
+import fetch_artifacts as FA
+FA.ARTIFACT_BASE = ARTIFACT_BASE
+missing = [f for f, (sz, dg) in FA.ARTIFACTS.items()
+           if not FA.verify(Path(f), sz, dg)]
+if missing:
+    print(f"fetching {len(missing)} artifact(s) ...")
+    for f in missing:
+        FA.fetch(f, *FA.ARTIFACTS[f], ARTIFACT_BASE)
+else:
+    print("all 4 artifacts present and checksum-verified")
 """),
 
 # ------------------------------------------------------------------ 1

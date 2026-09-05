@@ -565,3 +565,144 @@ Also measured: **running the evaluation concurrently with training is not
 free.** Epoch 2 took 73 min against 32 min for epoch 1 because the embedding
 extraction was competing for the capped GPU. Intermediate evaluations were
 reduced accordingly.
+
+---
+
+# Stage 7b — corrected cross-city retrieval (closing the original question)
+
+**A defect in our own Stage 7 metric.** `cross_city_neighbours` retrieved the
+`k*40 = 400` globally nearest candidates and *then* filtered to other cities.
+For a representation that clusters cities tightly this is degenerate.
+
+| system | queries with ZERO cross-city neighbours | slots filled /10 | pairs used |
+|---|---:|---:|---:|
+| **Stage 5 city encoder** | **12 / 20** | **2.35** | **47 / 200** |
+| frozen imagenet | 0 / 20 | 9.90 | 198 / 200 |
+| VICReg ep100 | 1 / 20 | 9.50 | 190 / 200 |
+| tabular | 0 / 20 | 10.00 | 200 / 200 |
+
+Stage 5's published 0.1456 came from 8 queries and 47 pairs, and those 8 were
+the biased subset near city boundaries. Stage 7b excludes the home city first,
+then takes the true top-10. `outputs/stage7_results.csv` is untouched (md5
+verified); corrected results are in `stage7b_*`.
+
+**Corrected, all 20 queries, 95% CI from 10,000 query bootstraps:**
+
+| system | greenery | bldg density | road mismatch |
+|---|---|---|---|
+| Stage 5 city encoder | 0.1344 [0.1133, 0.1548] | 0.2226 [0.1821, 0.2630] | 0.3150 |
+| frozen imagenet | 0.0908 [0.0692, 0.1122] | 0.1334 [0.1022, 0.1655] | 0.2800 |
+| VICReg ep100 | 0.0856 [0.0662, 0.1074] | 0.1268 [0.0949, 0.1638] | 0.3600 |
+| random control | 0.1519 | 0.2432 | 0.3350 |
+
+Paired contrasts: **VICReg − ImageNet is not significant on any metric**
+(greenery CI [-0.0222, +0.0136] crosses zero). VICReg − Stage 5 and
+ImageNet − Stage 5 are both significant on greenery and building density. The
+original qualitative conclusion holds, now properly supported.
+
+**I retract the earlier claim that VICReg beat frozen ImageNet.** It does not,
+at this sample size. The bootstrap should have been run before that claim was
+made.
+
+**Depth curve** — fraction of queries with >=10 cross-city neighbours available:
+
+| system | d=50 | d=100 | d=200 | d=400 | d=1000 |
+|---|---:|---:|---:|---:|---:|
+| Stage 5 city encoder | 0.05 | 0.05 | 0.05 | 0.20 | 0.35 |
+| frozen imagenet | 0.90 | 0.95 | 0.95 | 0.95 | 1.00 |
+| VICReg ep100 | 0.65 | 0.70 | 0.85 | 0.95 | 1.00 |
+
+Under the retrieval objective this was a failure. Under the eventual research
+question it is the phenomenon itself.
+
+# Shortcut audit
+
+**City is 92.33% predictable from capture metadata alone — no pixels —
+exceeding the Stage 5 pixel encoder's 90.63%.**
+
+Permutation importance: year +0.50, month +0.45, width +0.22, height +0.18,
+hour +0.16, projection +0.11. Cities were collected as distinct campaigns:
+Casablanca 92.7% one year *and* 92.7% one month; Lima 85% one year; Kuwait City
+84%. Fisheye share runs 0.000 (8 cities) to 0.837 (Taipei).
+
+Stratifying does not fix it — perspective-only 0.9211, perspective+2018-2022
+0.9081. **The confound is structural, so 90.63% is not by itself evidence the
+model learned anything about urban form.**
+
+# Experiment 1 — cross-campaign diagnostic, and its contamination
+
+Train a linear probe on each city's early capture period, test on a disjoint
+later period. First result: **0.9682**, which looked like a triumph.
+
+**It was contaminated, and the user caught it.** The campaign split was drawn
+from the full 100k without regard to Stage 5's own train/val split:
+
+| set | sequences also in Stage 5 TRAIN | images also in Stage 5 TRAIN |
+|---|---:|---:|
+| early (probe-train) | 8,299 / 10,437 = 79.5% | 78.8% |
+| **late (probe-TEST)** | 5,722 / 7,072 = **80.9%** | **80.9%** |
+
+The encoder had been trained with city labels on four fifths of its own test
+set. **0.9682 is discarded** and reframed as a post-hoc separability diagnostic.
+
+**Authoritative result** — late-campaign images that fell in Stage 5's *val*
+split, never seen by the encoder (8,268 images / 1,350 sequences / 19 cities;
+Casablanca has none):
+
+| condition | accuracy |
+|---|---:|
+| Stage 5 visual representation | **0.8892** |
+| metadata only, same clean test | 0.1160 |
+| chance | 0.0500 |
+
+Non-temporal metadata alone (resolution/camera/source, no year or month)
+reaches 0.2180.
+
+> The dominant temporal/capture metadata confound does not explain the
+> encoder's performance on the clean cross-campaign subset.
+
+**Remaining limitations.** The split controls for *when*, not *who* — a
+contributor using the same camera in both periods is not excluded, and
+contributor identity is unavailable in our cached fields. Effective sample size
+is 1,350 sequences, not 8,268 images.
+
+# City visual signatures
+
+Characteristic score is a **margin**, `cos(x, mu_own) - max_{c != own} cos(x, mu_c)`,
+not distance to centroid — distance alone rewards merely-typical images.
+
+Three k-means **model-discovered visual modes** per city (not urban archetypes).
+
+**Confound flag measures excess concentration over the city's own baseline**,
+not raw concentration. The first version measured raw concentration and
+over-flagged 9 of 12 modes, because a city that is 100% perspective trivially
+has every mode at 100% perspective. Corrected: **14 of 60 modes flagged** —
+e.g. Casablanca mode 0 (year +0.70, month +0.70, hour +0.63, essentially one
+collection trip), Singapore mode 2 (year +0.56), Jakarta mode 1 (projection
++0.34), Melbourne mode 1 (projection +0.44).
+
+46 of 60 are not flagged **by this test**. They are not proven intrinsic; they
+support a visual-signature interpretation under the confounds measured.
+
+Singapore's characteristic panel is ordinary streets, not landmarks: canopied
+multi-lane arterials with green verges. Its atypical panel skews toward
+different capture platforms (fisheye, bicycle-mounted), which is itself
+consistent with the confound finding.
+
+# What was deliberately stopped
+
+- the lambda=0.10 VICReg contrast — its premise was cross-city retrieval, closed
+  out by Stage 7b (~26 h saved)
+- the full lambda sweep {0, 0.05, 0.10, 0.25, 0.50} (~200 h)
+- Experiment C, bottom-frame masking (~50 h)
+- Experiment 2, retraining a campaign-robust encoder — Experiment 1 removed the
+  need
+- further VICReg tuning; the negative result stands and was not tuned away
+
+# Final packaging
+
+`README.md` is the polished story, `NOTES.md` this audit trail,
+`notebooks/street_signatures.ipynb` the reproducible walkthrough,
+`REFERENCES.md` the research context, `ARTIFACTS.md` the reproduction manifest.
+Reader-facing figures and tables are copied into `outputs/final/`; historical
+outputs are untouched.
