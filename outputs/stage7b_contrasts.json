@@ -1,0 +1,92 @@
+[
+  {
+    "a": "VICReg ep100",
+    "b": "frozen imagenet",
+    "metric": "green_view_index",
+    "diff": -0.005189427638149899,
+    "ci_lo": -0.022247525321708213,
+    "ci_hi": 0.013558165877990032,
+    "p_a_not_better": 0.2765,
+    "significant": false
+  },
+  {
+    "a": "VICReg ep100",
+    "b": "frozen imagenet",
+    "metric": "building_view_index",
+    "diff": -0.006635994190374896,
+    "ci_lo": -0.037024134193263315,
+    "ci_hi": 0.022133854575676477,
+    "p_a_not_better": 0.3403,
+    "significant": false
+  },
+  {
+    "a": "VICReg ep100",
+    "b": "frozen imagenet",
+    "metric": "type_highway_mismatch",
+    "diff": 0.07999999999999999,
+    "ci_lo": -0.005000000000000007,
+    "ci_hi": 0.16499999999999998,
+    "p_a_not_better": 0.9641,
+    "significant": false
+  },
+  {
+    "a": "VICReg ep100",
+    "b": "Stage 5 city encoder",
+    "metric": "green_view_index",
+    "diff": -0.048796723817032664,
+    "ci_lo": -0.07274770150068721,
+    "ci_hi": -0.026695857132834695,
+    "p_a_not_better": 0.0,
+    "significant": true
+  },
+  {
+    "a": "VICReg ep100",
+    "b": "Stage 5 city encoder",
+    "metric": "building_view_index",
+    "diff": -0.09575361655517764,
+    "ci_lo": -0.13814867602038702,
+    "ci_hi": -0.05365995930813385,
+    "p_a_not_better": 0.0,
+    "significant": true
+  },
+  {
+    "a": "VICReg ep100",
+    "b": "Stage 5 city encoder",
+    "metric": "type_highway_mismatch",
+    "diff": 0.045,
+    "ci_lo": -0.03,
+    "ci_hi": 0.11500000000000002,
+    "p_a_not_better": 0.8722,
+    "significant": false
+  },
+  {
+    "a": "frozen imagenet",
+    "b": "Stage 5 city encoder",
+    "metric": "green_view_index",
+    "diff": -0.04360729617888276,
+    "ci_lo": -0.0679059082489371,
+    "ci_hi": -0.02014594135907342,
+    "p_a_not_better": 0.0001,
+    "significant": true
+  },
+  {
+    "a": "frozen imagenet",
+    "b": "Stage 5 city encoder",
+    "metric": "building_view_index",
+    "diff": -0.08911762236480274,
+    "ci_lo": -0.13446928088349525,
+    "ci_hi": -0.04793876460130926,
+    "p_a_not_better": 0.0,
+    "significant": true
+  },
+  {
+    "a": "frozen imagenet",
+    "b": "Stage 5 city encoder",
+    "metric": "type_highway_mismatch",
+    "diff": -0.034999999999999996,
+    "ci_lo": -0.12999999999999998,
+    "ci_hi": 0.055000000000000014,
+    "p_a_not_better": 0.2277,
+    "significant": false
+  }
+]

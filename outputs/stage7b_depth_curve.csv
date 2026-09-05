@@ -1,0 +1,21 @@
+system,depth,frac_queries_with_k_plus_cross_city,frac_queries_with_zero,mean_cross_city_available,median_cross_city_available
+Stage 5 city encoder,50,0.05,0.9,2.25,0.0
+Stage 5 city encoder,100,0.05,0.85,4.8,0.0
+Stage 5 city encoder,200,0.05,0.7,9.75,0.0
+Stage 5 city encoder,400,0.2,0.6,21.05,0.0
+Stage 5 city encoder,1000,0.35,0.35,67.85,1.5
+frozen imagenet,50,0.9,0.1,31.95,34.5
+frozen imagenet,100,0.95,0.05,69.65,78.0
+frozen imagenet,200,0.95,0.05,147.95,166.5
+frozen imagenet,400,0.95,0.0,312.75,345.0
+frozen imagenet,1000,1.0,0.0,834.45,879.0
+VICReg ep100,50,0.65,0.2,21.35,24.5
+VICReg ep100,100,0.7,0.2,47.3,51.0
+VICReg ep100,200,0.85,0.05,107.8,127.5
+VICReg ep100,400,0.95,0.05,242.4,280.5
+VICReg ep100,1000,1.0,0.0,717.05,748.5
+tabular (ORACLE-ish sanity check),50,1.0,0.0,39.5,43.0
+tabular (ORACLE-ish sanity check),100,1.0,0.0,83.7,86.0
+tabular (ORACLE-ish sanity check),200,1.0,0.0,172.9,174.5
+tabular (ORACLE-ish sanity check),400,1.0,0.0,356.3,358.5
+tabular (ORACLE-ish sanity check),1000,1.0,0.0,902.25,918.5
