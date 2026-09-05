@@ -1,0 +1,5 @@
+condition,accuracy
+Stage 5 visual representation (clean held-out),0.8892114162445068
+"metadata only, same clean subset",0.11598935655539429
+"metadata only, original sequence-disjoint split",0.9249002118957276
+chance,0.05

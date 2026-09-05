@@ -1,8 +1,10 @@
 # Reproduction manifest — artifacts not stored in git
 
-Four binary artifacts are too large for the repository (**1.28 GB total**). The
+Five binary artifacts are too large for the repository (**1.37 GB total**). The
 notebook fetches them automatically on its default path; this file records what
 they are, how to verify them, and how to regenerate each from scratch.
+
+**Release:** <https://github.com/IvanFengJK/rdai-street-signature/releases/tag/v1.0-artifacts>
 
 ## Manifest
 
@@ -12,6 +14,7 @@ they are, how to verify them, and how to regenerate each from scratch.
 | `data/interim/emb_trained.npz` | 456,236,109 B (435 MiB) | `f4b78ce8f24a510c95e1b56fbd4c9fa424aff4c3fad93fff4dcabd9d4595e540` | **yes** |
 | `data/interim/emb_imagenet.npz` | 341,480,561 B (326 MiB) | `c9ace847611df97647d33c45ae58f80f823baf1c9dc30a475bfc54e0f81152c4` | **yes** |
 | `data/interim/emb_s11_vicreg_a_ep100.npz` | 389,033,061 B (371 MiB) | `5f6c1ac09f0d1e178df12381dfcf10f823be2ffe1812ae8720741e01d2f0e201` | **yes** |
+| `checkpoints/runB_best.pt` | 94,528,075 B (90 MiB) | `7d50254bca60b04529d26b56968e1e6a2f89686f8d42162ff710f15abb7cc89b` | **yes** |
 
 Verify after download:
 
@@ -59,6 +62,18 @@ no training on this data. The untrained comparison in every retrieval table.
 
 *Regenerate*: same command as above — `run_stage6.py` writes both.
 
+### `checkpoints/runB_best.pt` — the reproducibility twin
+
+A second, independent training run from the same seed. The notebook's
+reproducibility cell loads it alongside `runA_best.pt` and compares every weight
+tensor, demonstrating the runs are bit-identical. Same architecture, same
+config, same 0.9089 validation accuracy.
+
+*Regenerate*:
+```bash
+python scripts/run_stage5.py runB
+```
+
 ### `data/interim/emb_s11_vicreg_a_ep100.npz` — VICReg embeddings
 
 Backbone features from the self-supervised encoder after 100 epochs (~54 GPU-h
@@ -74,15 +89,13 @@ python scripts/run_stage11_eval.py \
 
 ## Hosting
 
-> **⚠️ MANUAL STEP — these files are not yet uploaded anywhere.**
-> Nothing in this repository can host 1.28 GB. Before submission, upload the four
-> files as **GitHub Release assets** (2 GiB per-file limit, so all four fit) and
-> set the release tag below.
+> **Published.** Assets live at the release below and download without
+> authentication.
+> Nothing in this repository can host 1.37 GB. These are published as
+> **GitHub Release assets** under the tag `v1.0-artifacts`.
 
-Recommended: create a release tagged `v1.0-artifacts` and attach all four files
-with their exact filenames. Then set, in one place only —
-`ARTIFACT_BASE` at the top of the notebook, and `ARTIFACT_BASE` in
-`scripts/fetch_artifacts.py`:
+They are attached to the release with these exact filenames. `ARTIFACT_BASE`
+(top of the notebook, and in `scripts/fetch_artifacts.py`) already points here:
 
 ```
 https://github.com/IvanFengJK/rdai-street-signature/releases/download/v1.0-artifacts
@@ -105,7 +118,7 @@ python scripts/fetch_artifacts.py --check    # verify only, no download
 ```
 
 The notebook calls the same module, so its default path works on a fresh Colab
-with no manual download step — **once `ARTIFACT_BASE` is set**.
+with no manual download step.
 
 ## If you would rather not host anything
 

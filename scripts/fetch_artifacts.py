@@ -38,6 +38,11 @@ ARTIFACTS = {
     "data/interim/emb_s11_vicreg_a_ep100.npz": (
         389033061,
         "5f6c1ac09f0d1e178df12381dfcf10f823be2ffe1812ae8720741e01d2f0e201"),
+    # second same-seed run; the notebook's reproducibility cell compares its
+    # weights against runA tensor by tensor
+    "checkpoints/runB_best.pt": (
+        94528075,
+        "7d50254bca60b04529d26b56968e1e6a2f89686f8d42162ff710f15abb7cc89b"),
 }
 
 

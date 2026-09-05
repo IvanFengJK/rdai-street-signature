@@ -4,13 +4,29 @@ data/*
 !data/raw/
 data/raw/*
 !data/raw/info.csv          # 37 KB data dictionary, kept for provenance
+!data/interim/
+data/interim/*
+!data/interim/dataset.parquet   # 16 MB manifest defining the 100k experiment
+!data/interim/*.csv
 
 # ---- artefacts ----
-checkpoints/
+checkpoints/*
+# small artefacts the notebook needs on a fresh clone (see ARTIFACTS.md)
+!checkpoints/*_history.json
 outputs/*
 !outputs/*.png
 !outputs/*.csv
 !outputs/*.json
+!outputs/final/
+!outputs/signatures/
+outputs/signatures/*
+!outputs/signatures/mode_summary.csv
+!outputs/signatures/characteristic_atypical.csv
+!outputs/signatures/Singapore_characteristic.png
+!outputs/signatures/Singapore_atypical.png
+!outputs/signatures/Singapore_mode?.png
+!outputs/signatures/Berlin_mode?.png
+!outputs/signatures/Kuwait_City_mode?.png
 embeddings/
 *.pt
 *.pth
